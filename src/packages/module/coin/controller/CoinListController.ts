@@ -1,20 +1,16 @@
-import { Controller, Get, Req, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { DefaultController } from '@ts-core/backend-nestjs';
 import { TypeormUtil } from '@ts-core/backend';
-import { FilterableConditions, FilterableSort, Paginable } from '@ts-core/common';
-import { Logger } from '@ts-core/common';
+import { Logger, FilterableConditions, FilterableSort, Paginable } from '@ts-core/common';
 import { IsOptional, IsString } from 'class-validator';
-import * as _ from 'lodash';
 import { DatabaseService } from '@project/module/database/service';
 import { Swagger } from '@project/module/swagger';
-import { IUserHolder } from '@project/module/database/user';
-import { TransformGroup } from '@project/module/database';
 import { ICoinListDto, ICoinListDtoResponse } from '@project/common/platform/api/coin';
-import { UserGuard, UserGuardOptions } from '@project/module/guard';
-import { Coin } from '@project/common/platform/coin';
+import { Coin } from '@project/common/platform';
 import { COIN_URL } from '@project/common/platform/api';
-import { CoinEntity } from '@project/module/database/coin';
+import { CoinEntity } from '@project/module/database/entity';
+import * as _ from 'lodash';
 
 // --------------------------------------------------------------------------
 //
@@ -84,14 +80,11 @@ export class CoinListController extends DefaultController<ICoinListDto, ICoinLis
 
     @Swagger({ name: 'Get coin list', response: CoinListDtoResponse })
     @Get()
-    @UseGuards(UserGuard)
-    @UserGuardOptions({ company: { required: true } })
-    public async executeExtended(@Query({ transform: Paginable.transform }) params: CoinListDto, @Req() request: IUserHolder): Promise<ICoinListDtoResponse> {
-        let query = CoinEntity.createQueryBuilder('coin')
-            .where('coin.companyId = :companyId', { companyId: request.company.id })
+    public async executeExtended(@Query({ transform: Paginable.transform }) params: CoinListDto): Promise<ICoinListDtoResponse> {
+        let query = CoinEntity.createQueryBuilder('coin');
         this.database.addCoinRelations(query);
         return TypeormUtil.toPagination(query, params, this.transform);
     }
 
-    protected transform = async (item: CoinEntity): Promise<Coin> => item.toObject({ groups: [TransformGroup.PUBLIC_DETAILS] });
+    protected transform = async (item: CoinEntity): Promise<Coin> => item.toObject();
 }

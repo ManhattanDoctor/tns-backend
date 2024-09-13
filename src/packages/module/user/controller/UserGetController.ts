@@ -1,16 +1,13 @@
-import { Controller, Param, Req, Get, UseGuards } from '@nestjs/common';
+import { Controller, Param, Get } from '@nestjs/common';
 import { DefaultController } from '@ts-core/backend-nestjs';
 import { Logger } from '@ts-core/common';
 import { ParseIntPipe } from '@nestjs/common';
-import * as _ from 'lodash';
 import { DatabaseService } from '@project/module/database/service';
-import { User } from '@project/common/platform/user';
 import { Swagger } from '@project/module/swagger';
-import { UserGuard } from '@project/module/guard';
-import { IUserHolder } from '@project/module/database/user';
 import { IUserGetDtoResponse } from '@project/common/platform/api/user';
 import { USER_URL } from '@project/common/platform/api';
-import { TransformGroup } from '@project/module/database';
+import { User } from '@project/common/platform';
+import * as _ from 'lodash';
 
 // --------------------------------------------------------------------------
 //
@@ -38,17 +35,8 @@ export class UserGetController extends DefaultController<number, IUserGetDtoResp
 
     @Swagger({ name: `Get user by id`, response: User })
     @Get()
-    @UseGuards(UserGuard)
-    public async executeExtends(@Param('id', ParseIntPipe) id: number, @Req() request: IUserHolder): Promise<IUserGetDtoResponse> {
-        let user = request.user;
-
+    public async executeExtends(@Param('id', ParseIntPipe) id: number): Promise<IUserGetDtoResponse> {
         let item = await this.database.userGet(id);
-        UserGuard.checkUser({ isRequired: true }, item)
-
-        let groups = [TransformGroup.PUBLIC_DETAILS];
-        if (item.id === user.id) {
-            groups.push(TransformGroup.PRIVATE);
-        }
-        return item.toObject({ groups });
+        return !_.isNil(item) ? item.toObject() : null;
     }
 }

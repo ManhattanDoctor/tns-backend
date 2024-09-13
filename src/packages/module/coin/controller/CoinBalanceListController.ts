@@ -2,19 +2,16 @@ import { Controller, Get, Req, UseGuards, Query } from '@nestjs/common';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { DefaultController } from '@ts-core/backend-nestjs';
 import { TypeormUtil } from '@ts-core/backend';
-import { FilterableConditions, FilterableSort, Paginable } from '@ts-core/common';
-import { Logger } from '@ts-core/common';
+import { Logger, FilterableConditions, FilterableSort, Paginable } from '@ts-core/common';
 import { IsOptional, IsString } from 'class-validator';
-import * as _ from 'lodash';
 import { DatabaseService } from '@project/module/database/service';
 import { Swagger } from '@project/module/swagger';
-import { IUserHolder } from '@project/module/database/user';
-import { TransformGroup } from '@project/module/database';
 import { ICoinBalanceListDto, ICoinBalanceListDtoResponse } from '@project/common/platform/api/coin';
-import { UserGuard } from '@project/module/guard';
-import { Coin, CoinBalance } from '@project/common/platform/coin';
-import { COIN_BALANCE_URL, COIN_URL } from '@project/common/platform/api';
-import { CoinBalanceEntity } from '@project/module/database/coin';
+import { COIN_BALANCE_URL } from '@project/common/platform/api';
+import { CoinBalanceEntity } from '@project/module/database/entity';
+import { Coin, CoinBalance } from '@project/common/platform';
+import * as _ from 'lodash';
+
 // --------------------------------------------------------------------------
 //
 //  Controller
@@ -86,7 +83,7 @@ export class CoinBalanceListController extends DefaultController<ICoinBalanceLis
             return null;
         }
         let item = {};
-        for (let name of ['id', 'coinId', 'decimals', 'companyId', 'objectUid', 'coinUid']) {
+        for (let name of ['id', 'coinId', 'decimals', 'objectUid', 'coinUid']) {
             let value = filter[name];
             if (_.isNil(value)) {
                 continue;
@@ -97,7 +94,7 @@ export class CoinBalanceListController extends DefaultController<ICoinBalanceLis
                     item['ledgerUid'] = value;
                     break;
                 case 'objectUid':
-                    filter['ledgerUid'] = value;
+                    filter['uid'] = value;
                     break;
                 default:
                     item[name] = value;
@@ -115,11 +112,9 @@ export class CoinBalanceListController extends DefaultController<ICoinBalanceLis
 
     @Swagger({ name: 'Get coin list', response: CoinBalanceListDtoResponse })
     @Get()
-    @UseGuards(UserGuard)
-    public async executeExtended(@Query({ transform: Paginable.transform }) params: CoinBalanceListDto, @Req() request: IUserHolder): Promise<ICoinBalanceListDtoResponse> {
-        let query = CoinBalanceEntity
-            .createQueryBuilder('coinBalance')
-            .leftJoinAndSelect('coinBalance.coin', 'coin');
+    public async executeExtended(@Query({ transform: Paginable.transform }) params: CoinBalanceListDto): Promise<ICoinBalanceListDtoResponse> {
+        let query = CoinBalanceEntity.createQueryBuilder('coinBalance');
+        this.database.addCoinBalanceRelations(query);
 
         let sort = this.parseFilters<FilterableSort<Coin>>(params.sort);
         let conditions = this.parseFilters<FilterableConditions<Coin>>(params.conditions);
@@ -129,9 +124,8 @@ export class CoinBalanceListController extends DefaultController<ICoinBalanceLis
         if (!_.isEmpty(sort)) {
             TypeormUtil.applySort(query, sort, 'coin');
         }
-
         return TypeormUtil.toPagination(query, params, this.transform);
     }
 
-    protected transform = async (item: CoinBalanceEntity): Promise<CoinBalance> => item.toObject({ groups: [TransformGroup.PUBLIC_DETAILS] });
+    protected transform = async (item: CoinBalanceEntity): Promise<CoinBalance> => item.toObject();
 }

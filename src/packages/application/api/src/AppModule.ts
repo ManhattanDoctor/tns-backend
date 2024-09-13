@@ -1,8 +1,7 @@
-import { DynamicModule, Inject, OnApplicationBootstrap, Injectable } from '@nestjs/common';
+import { DynamicModule, OnApplicationBootstrap, Injectable } from '@nestjs/common';
 import { LoggerModule } from '@ts-core/backend-nestjs';
 import { CacheModule } from '@ts-core/backend-nestjs';
 import { TransportModule, TransportType } from '@ts-core/backend-nestjs';
-import MemoryStore from 'cache-manager-memory-store';
 import { AppSettings } from './AppSettings';
 import { DatabaseModule } from '@project/module/database';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
@@ -11,17 +10,10 @@ import { IDatabaseSettings, ModeApplication } from '@ts-core/backend';
 import { modulePath, nodeModulePath, nodeModulePathBuild } from '@project/module';
 import { UserModule } from '@project/module/user';
 import { InitializeService } from './service';
-import { CryptoModule } from '@project/module/crypto';
 import { CoinModule } from '@project/module/coin';
-import { LoginModule } from '@project/module/login';
 import { ActionModule } from '@project/module/action';
-import { CompanyModule } from '@project/module/company';
-import { LedgerModule } from '@project/module/ledger';
+import { HlfModule } from '@project/module/hlf';
 import { SocketModule } from '@project/module/socket';
-import { BillModule } from '@project/module/bill';
-import { FaceModule } from '@project/module/face';
-import { TerminalModule } from '@project/module/terminal';
-import { NotificationModule } from '@project/module/notification';
 
 @Injectable()
 export class AppModule extends ModeApplication<AppSettings> implements OnApplicationBootstrap {
@@ -36,25 +28,17 @@ export class AppModule extends ModeApplication<AppSettings> implements OnApplica
             module: AppModule,
             imports: [
                 DatabaseModule,
-                CacheModule.forRoot({ store: MemoryStore }),
-
+                CacheModule.forRoot(),
                 LoggerModule.forRoot(settings),
                 TypeOrmModule.forRoot(this.getOrmConfig(settings)[0]),
                 TransportModule.forRoot({ type: TransportType.LOCAL }),
 
-                FaceModule.forRoot(settings),
-                LoginModule.forRoot(settings),
-                CryptoModule.forRoot(settings),
-                LedgerModule.forRoot(settings),
-                NotificationModule.forRoot(settings),
+                HlfModule.forRoot(settings),
 
                 UserModule,
                 CoinModule,
-                BillModule,
                 ActionModule,
                 SocketModule,
-                CompanyModule,
-                TerminalModule,
             ],
             controllers: [
             ],
@@ -75,7 +59,6 @@ export class AppModule extends ModeApplication<AppSettings> implements OnApplica
     // --------------------------------------------------------------------------
 
     public static getOrmConfig(settings: IDatabaseSettings): Array<TypeOrmModuleOptions> {
-        console.log(213, process.env.SSL_CA);
         return [
             {
                 type: 'postgres',
@@ -136,7 +119,7 @@ export class AppModule extends ModeApplication<AppSettings> implements OnApplica
     // --------------------------------------------------------------------------
 
     public constructor(logger: Logger, settings: AppSettings, private transport: Transport, private service: InitializeService) {
-        super('Cvartel Bio Payment API', settings, logger);
+        super('TNS Platform API', settings, logger);
     }
     // --------------------------------------------------------------------------
     //

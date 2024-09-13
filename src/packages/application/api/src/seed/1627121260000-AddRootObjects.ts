@@ -1,18 +1,9 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
+import { CoinBalanceEntity, CoinEntity, NicknameEntity, UserEntity } from '@project/module/database/entity';
+import { User, UserStatus, Variables as AclVariables, UserRole } from '@project/common/hlf/acl';
+import { Variables as AuctionVariable } from '@project/common/hlf/auction';
+import { CoinBalance } from '@hlf-core/common';
 import * as _ from 'lodash';
-import { UserCryptoKeyEntity, UserEntity, UserPreferencesEntity, UserRoleEntity } from '@project/module/database/user';
-import { UserType, UserStatus, UserResource } from '@project/common/platform/user';
-import { LoginService } from '@project/module/login/service';
-import { TransportCryptoManagerEd25519 } from '@ts-core/common';
-import { CryptoKeyStatus } from '@project/common/platform/crypto';
-import { ROOT_COIN_RUB_DECIMALS, ROOT_USER_CRYPTO_KEY_PRIVATE, ROOT_USER_CRYPTO_KEY_PUBLIC, ROOT_COIN_RUB_AMOUNT } from '@project/common/ledger';
-import { UserService } from '@project/module/user/service';
-import { LedgerService } from '@project/module/ledger/service';
-import { CompanyEntity, CompanyPreferencesEntity } from '@project/module/database/company';
-import { LedgerCompanyRole } from '@project/common/ledger/role';
-import { CompanyStatus } from '@project/common/platform/company';
-import { CoinBalanceEntity, CoinEntity } from '@project/module/database/coin';
-import { LedgerCoin, LedgerCoinIdPreset } from '@project/common/ledger/coin';
 
 export class AddRootObjects1627121260000 implements MigrationInterface {
 
@@ -22,108 +13,59 @@ export class AddRootObjects1627121260000 implements MigrationInterface {
     //
     // --------------------------------------------------------------------------
 
-    private async userAdd(queryRunner: QueryRunner): Promise<void> {
-        let repository = queryRunner.connection.getRepository(UserEntity);
-        let ledgerUid = LedgerService.USER_ROOT_LEDGER_UID;
+    private async userAdd(runner: QueryRunner): Promise<void> {
+        let repository = runner.connection.getRepository(UserEntity);
 
-        let item = await repository.findOneBy({ ledgerUid });
-        if (!_.isNil(item)) {
-            return;
-        }
+        let platform = new UserEntity();
+        platform.uid = User.createUid(AclVariables.platform.address);
+        platform.status = UserStatus.ACTIVE;
+        platform.address = AclVariables.platform.address;
+        platform.inviterUid = AclVariables.platform.uid;
+        platform.nicknameUid = AclVariables.platform.nicknameUid;
+        await repository.save(platform);
 
-        item = new UserEntity();
-        item.login = LoginService.createLogin('111452810894131754642', UserResource.GOOGLE);
-        item.type = UserType.ADMINISTRATOR;
-        item.status = UserStatus.ACTIVE;
-        item.resource = UserResource.GOOGLE;
-        item.ledgerUid = ledgerUid;
+        let team = new UserEntity();
+        team.uid = User.createUid(AclVariables.team.address);
+        team.status = UserStatus.ACTIVE;
+        team.address = AclVariables.team.address;
+        team.inviterUid = AclVariables.platform.uid;
+        await repository.save(team);
 
-        let preferences = (item.preferences = new UserPreferencesEntity());
-        preferences.name = 'Renat Gubaev';
-        preferences.phone = '+79099790296';
-        preferences.email = 'renat.gubaev@gmail.com';
-        preferences.locale = 'ru';
-        preferences.isMale = true;
-        preferences.picture = 'https://lh3.googleusercontent.com/a-/AOh14Gi3OO8vUAOm95cVHW-JOIzidhXd8ywkxtXm3f6r=s96-c';
-        preferences.birthday = new Date(1986, 11, 7);
-        preferences.location = 'Moscow, Russia';
-        preferences.description = 'Default Administrator';
-
-        let cryptoKey = item.cryptoKey = new UserCryptoKeyEntity();
-        cryptoKey.status = CryptoKeyStatus.ACTIVE;
-        cryptoKey.algorithm = TransportCryptoManagerEd25519.ALGORITHM;
-        cryptoKey.publicKey = ROOT_USER_CRYPTO_KEY_PUBLIC;
-        // We can't encrypt private key, because we don't know encryption key yet
-        cryptoKey.privateKey = ROOT_USER_CRYPTO_KEY_PRIVATE;
-
-        item = await repository.save(item);
+        let root = new UserEntity();
+        root.uid = User.createUid(AclVariables.root.address);
+        root.roles = Object.values(UserRole);
+        root.status = UserStatus.ACTIVE;
+        root.address = AclVariables.root.address;
+        root.inviterUid = AclVariables.platform.uid;
+        await repository.save(root);
     }
 
-    private async companyAdd(queryRunner: QueryRunner): Promise<void> {
-        let repository = queryRunner.connection.getRepository(CompanyEntity);
-        let ledgerUid = LedgerService.COMPANY_ROOT_LEDGER_UID;
-
-        let item = await repository.findOneBy({ ledgerUid });
-        if (!_.isNil(item)) {
-            return;
-        }
-
-        item = new CompanyEntity();
-        item.status = CompanyStatus.ACTIVE;
-        item.ledgerUid = ledgerUid;
-        item.rolesTotal = { COMPANY_COIN_MANAGER: '1', COMPANY_COMPANY_MANAGER: '1', COMPANY_PROJECT_MANAGER: '1', COMPANY_USER_MANAGER: '1', EXPERT: '1', PROTECTOR: '1' };
-
-        let preferences = item.preferences = new CompanyPreferencesEntity();
-        preferences.title = 'Cvartel';
-        preferences.picture = 'https://static.tildacdn.com/tild3833-6463-4936-b061-653837623761/badge.png';
-        preferences.description = 'CVARTEL is a decentralized organization focused on developing open source computer vision tech for web3 and beyond. The technological basis of the company is the self-developed ML framework that is perfect for the development of state-of-the-art computer vision algorithms.';
-
-        item = await repository.save(item);
-
-        await queryRunner.connection.getRepository(UserEntity)
-            .createQueryBuilder()
-            .update({ companyId: item.id })
-            .where('ledgerUid = :ledgerUid', { ledgerUid: LedgerService.USER_ROOT_LEDGER_UID })
-            .execute();
-    }
-
-    private async userRolesAdd(queryRunner: QueryRunner): Promise<void> {
-        let user = await queryRunner.connection.getRepository(UserEntity).findOneByOrFail({ ledgerUid: LedgerService.USER_ROOT_LEDGER_UID });
-        let company = await queryRunner.connection.getRepository(CompanyEntity).findOneByOrFail({ ledgerUid: LedgerService.COMPANY_ROOT_LEDGER_UID });
-
-        let repository = queryRunner.connection.getRepository(UserRoleEntity);
-        let items = Object.values(LedgerCompanyRole).map(role => new UserRoleEntity(user.id, role, company.id));
-        await repository.save(items);
-    }
-
-    private async coinAddRub(queryRunner: QueryRunner): Promise<void> {
-        let repository = queryRunner.connection.getRepository(CoinEntity);
-        let ledgerUid = LedgerCoin.createUid(LedgerService.COMPANY_ROOT_LEDGER_UID, LedgerCoinIdPreset.RUB);
-
-        let item = await repository.findOneBy({ ledgerUid });
-        if (!_.isNil(item)) {
-            return;
-        }
-
-        let company = await queryRunner.connection.getRepository(CompanyEntity).findOneByOrFail({ ledgerUid: LedgerService.COMPANY_ROOT_LEDGER_UID });
-
-        item = new CoinEntity();
-        item.coinId = LedgerCoinIdPreset.RUB;
-        item.decimals = ROOT_COIN_RUB_DECIMALS;
-        item.ledgerUid = ledgerUid;
-        item.companyId = company.id;
-        item.held = item.burned = '0';
-        item.inUse = item.total = item.emitted = ROOT_COIN_RUB_AMOUNT;
-        item = await repository.save(item);
-
-        let user = await queryRunner.connection.getRepository(UserEntity).findOneByOrFail({ ledgerUid: LedgerService.USER_ROOT_LEDGER_UID });
+    private async coinAdd(runner: QueryRunner): Promise<void> {
+        let coin = new CoinEntity();
+        coin.uid = AuctionVariable.coin.uid;
+        coin.coinId = AuctionVariable.coin.coinId;
+        coin.decimals = AuctionVariable.coin.decimals;
+        coin.ownerUid = AclVariables.platform.uid;
+        coin.balance = new CoinBalance();
+        coin.balance.held = coin.balance.burned = '0';
+        coin.balance.inUse = coin.balance.emitted = AuctionVariable.coin.amount;
+        coin = await runner.connection.getRepository(CoinEntity).save(coin);
 
         let balance = new CoinBalanceEntity();
-        balance.coinId = item.id;
-        balance.ledgerUid = user.ledgerUid;
+        balance.uid = AclVariables.root.uid;
         balance.held = '0';
-        balance.inUse = balance.total = ROOT_COIN_RUB_AMOUNT;
-        await queryRunner.connection.getRepository(CoinBalanceEntity).save(balance);
+        balance.inUse = balance.total = AuctionVariable.coin.amount;
+        balance.coinId = coin.id;
+        balance = await runner.connection.getRepository(CoinBalanceEntity).save(balance);
+    }
+
+    private async nicknameAdd(runner: QueryRunner): Promise<void> {
+        let nickname = new NicknameEntity();
+        nickname.uid = AclVariables.platform.nicknameUid;
+        nickname.nickname = AclVariables.platform.nickname;
+        nickname.ownerUid = AclVariables.platform.uid;
+        nickname.parentUid = null;
+        nickname = await runner.connection.getRepository(NicknameEntity).save(nickname);
     }
 
     // --------------------------------------------------------------------------
@@ -132,13 +74,15 @@ export class AddRootObjects1627121260000 implements MigrationInterface {
     //
     // --------------------------------------------------------------------------
 
-    public async up(queryRunner: QueryRunner): Promise<any> {
-        await this.userAdd(queryRunner);
-        await this.companyAdd(queryRunner);
-        await this.userRolesAdd(queryRunner);
-
-        await this.coinAddRub(queryRunner);
+    public async up(runner: QueryRunner): Promise<any> {
+        let repository = runner.connection.getRepository(UserEntity);
+        if (await repository.count() > 0) {
+            return;
+        }
+        await this.userAdd(runner);
+        await this.coinAdd(runner);
+        await this.nicknameAdd(runner);
     }
 
-    public async down(queryRunner: QueryRunner): Promise<any> { }
+    public async down(runner: QueryRunner): Promise<any> { }
 }

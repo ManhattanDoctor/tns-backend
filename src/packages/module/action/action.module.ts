@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '@project/module/database';
-import { LedgerModule } from '@project/module/ledger';
-import { SharedModule } from '@project/module/shared';
+import { HlfModule } from '@project/module/hlf';
 import { ActionListController } from './controller';
 
 @Module({
-    imports: [SharedModule, DatabaseModule, LedgerModule],
+    imports: [DatabaseModule, HlfModule],
     controllers: [
         ActionListController,
     ],

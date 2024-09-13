@@ -1,17 +1,15 @@
-import { Controller, Get, UseGuards, Req, Query } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { DefaultController } from '@ts-core/backend-nestjs';
 import { TypeormUtil } from '@ts-core/backend';
-import { FilterableConditions, FilterableSort, IPagination, Paginable } from '@ts-core/common';
-import { Logger } from '@ts-core/common';
+import { Logger, FilterableConditions, FilterableSort, IPagination, Paginable } from '@ts-core/common';
 import { IsOptional, IsString } from 'class-validator';
-import * as _ from 'lodash';
 import { DatabaseService } from '@project/module/database/service';
-import { IUserHolder, UserEntity, UserRoleEntity } from '@project/module/database/user';
-import { User, UserType } from '@project/common/platform/user';
 import { USER_URL } from '@project/common/platform/api';
 import { Swagger } from '@project/module/swagger';
-import { UserGuard, UserGuardOptions } from '@project/module/guard';
+import { User } from '@project/common/platform';
+import { UserEntity } from '@project/module/database/entity';
+import * as _ from 'lodash';
 
 // --------------------------------------------------------------------------
 //
@@ -81,20 +79,9 @@ export class UserListController extends DefaultController<UserListDto, UserListD
 
     @Swagger({ name: 'Get user list', response: UserListDtoResponse })
     @Get()
-    @UseGuards(UserGuard)
-    @UserGuardOptions({ type: [UserType.ADMINISTRATOR] })
-    public async executeExtended(@Query({ transform: Paginable.transform }) params: UserListDto, @Req() request: IUserHolder): Promise<UserListDtoResponse> {
-        let user = request.user;
-        let company = request.company;
-
-        UserGuard.checkCompany({ isCompanyRequired: true }, company);
-
-        let query = UserEntity.createQueryBuilder('user')
-            .innerJoinAndSelect('user.preferences', 'preferences')
-            .innerJoinAndSelect('user.company', 'company')
-            .where(`company.id  = :id`, { id: company.id })
-            .leftJoinAndMapMany('company.userRoles', UserRoleEntity, 'companyRole', `companyRole.userId = user.id AND companyRole.companyId = company.id`)
-
+    public async executeExtended(@Query({ transform: Paginable.transform }) params: UserListDto): Promise<UserListDtoResponse> {
+        let query = UserEntity.createQueryBuilder('user');
+        this.database.addUserRelations(query);
         return TypeormUtil.toPagination(query, params, this.transform);
     }
 

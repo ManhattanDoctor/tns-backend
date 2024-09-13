@@ -1,17 +1,13 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '@project/module/database';
-import { LedgerModule } from '@project/module/ledger';
-import { SharedModule } from '@project/module/shared';
-import { UserEditController, UserGetController, UserListController, UserPhotoController } from './controller';
-import { FaceModule } from '@project/module/face';
-import { UserService } from './service';
+import { UserGetController, UserListController } from './controller';
 
-let providers = [UserService];
+let providers = [];
 
 @Module({
-    imports: [SharedModule, DatabaseModule, LedgerModule, FaceModule],
+    imports: [DatabaseModule],
     exports: [...providers],
-    controllers: [UserGetController, UserListController, UserEditController, UserPhotoController],
+    controllers: [UserGetController, UserListController],
     providers
 })
 export class UserModule { }

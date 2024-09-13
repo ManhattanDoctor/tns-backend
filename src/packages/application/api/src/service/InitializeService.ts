@@ -1,12 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { Logger, Transport, ExtendedError, LoggerWrapper } from '@ts-core/common';
+import { Logger, Transport, ObjectUtil, LoggerWrapper } from '@ts-core/common';
 import { DatabaseService } from '@project/module/database/service';
-import * as _ from 'lodash';
-import { LedgerApiClient, LedgerMonitor } from '@project/module/ledger/service';
-import { LedgerService } from '@project/module/ledger/service';
-import { UserService } from '@project/module/user/service';
 import { TransportSocket } from '@ts-core/socket-server';
-import { FaceService } from '@project/module/face/service';
+import { COIN_UID, HlfService, PLATFORM_USER_UID, ROOT_USER_UID, SECOND_USER_PRIVATE_KEY, SECOND_USER_PUBLIC_KEY, SECOND_USER_UID, THIRD_USER_PRIVATE_KEY, THIRD_USER_PUBLIC_KEY, THIRD_USER_UID } from '@project/module/hlf/service';
+import { UserAddCommand, UserGetCommand } from '@project/common/hlf/acl/transport';
+import { TransportCryptoManagerMetamaskBackend } from '@ts-core/crypto-metamask-backend';
+import { personalSign } from '@metamask/eth-sig-util';
+import * as _ from 'lodash';
+import { LedgerBlockParseCommand } from '@hlf-explorer/monitor';
+import { AuctionBidCommand, AuctionCheckCommand, AuctionPrimaryAddCommand, AuctionSecondaryAddCommand, CoinEmitCommand, CoinTransferCommand, NicknameTransferCommand } from '@project/common/hlf/auction/transport';
+import { CoinBalanceUpdateCommand, CoinUpdateCommand } from '@project/module/coin/transport';
 
 @Injectable()
 export class InitializeService extends LoggerWrapper {
@@ -27,60 +30,9 @@ export class InitializeService extends LoggerWrapper {
     constructor(
         logger: Logger,
         private transport: Transport,
-        private database: DatabaseService,
-        private ledger: LedgerService,
-        private user: UserService,
-        private api: LedgerApiClient,
-        private monitor: LedgerMonitor,
-        private socket: TransportSocket,
-        private face: FaceService
+        private hlf: HlfService
     ) {
         super(logger);
-    }
-
-    // --------------------------------------------------------------------------
-    //
-    //  Private Methods
-    //
-    // --------------------------------------------------------------------------
-
-    private async userRootCheck(): Promise<void> {
-        let userRoot = await this.ledger.userRootGet();
-        if (_.isNil(userRoot)) {
-            throw new ExtendedError(`Unable to find default user: please seed database`);
-        }
-
-        let userRootLedger = await this.ledger.userRootLedgerGet();
-        if (_.isNil(userRootLedger)) {
-            throw new ExtendedError(`Unable to find default ledger user: please check ledger chaincode`);
-        }
-
-        if (userRootLedger.cryptoKey.value !== userRoot.cryptoKey.publicKey) {
-            throw new ExtendedError(`Ledger root user has different key from the default user: probably it was changed directly`);
-        }
-        this.log(`User root was founded`);
-        /*
-        let cryptoKey = user.cryptoKey;
-        if (cryptoKey.publicKey !== ROOT_USER_CRYPTO_KEY_PUBLIC) {
-            this.log(`Ledger root user crypto key matches default user key`);
-            return;
-        }
-        this.log(`Ledger root user has default crypto key: changing it...`);
-
-        let keys = Ed25519.keys();
-        let algorithm = Ed25519.ALGORITHM;
-
-        this.api.setSigner({ uid, isDisableDecryption: true });
-        await this.api.ledgerRequestSendListen(new UserCryptoKeyChangeCommand({ uid, cryptoKey: { algorithm, value: keys.publicKey } }));
-
-        cryptoKey.algorithm = Ed25519.ALGORITHM;
-        cryptoKey.publicKey = keys.publicKey;
-        cryptoKey.privateKey = await this.transport.sendListen(new CryptoEncryptCommand({ type: CryptoKeyType.DATABASE, value: keys.privateKey }));
-
-        ValidateUtil.validate(cryptoKey);
-        await this.database.userCryptoKey.save(cryptoKey);
-        this.log(`Ledger root user default crypto key changed successfully`);
-        */
     }
 
     // --------------------------------------------------------------------------
@@ -90,7 +42,41 @@ export class InitializeService extends LoggerWrapper {
     // --------------------------------------------------------------------------
 
     public async initialize(): Promise<void> {
-        await this.ledger.initialize();
+        await this.hlf.initialize();
+
+        // this.transport.send(new LedgerBlockParseCommand({ number: 12 }));
+
+        let api = this.hlf;
+        api.setRoot();
+        
+        // await api.sendListen(new UserAddCommand({ signature: { publicKey: SECOND_USER_PUBLIC_KEY, algorithm: TransportCryptoManagerMetamaskBackend.ALGORITHM, value: personalSign({ data: '1', privateKey: Buffer.from(SECOND_USER_PRIVATE_KEY, 'hex') }), nonce: '1' }, inviterUid: PLATFORM_USER_UID }));
+        // await api.sendListen(new UserAddCommand({ signature: { publicKey: THIRD_USER_PUBLIC_KEY, algorithm: TransportCryptoManagerMetamaskBackend.ALGORITHM, value: personalSign({ data: '1', privateKey: Buffer.from(THIRD_USER_PRIVATE_KEY, 'hex') }), nonce: '1' }, inviterUid: SECOND_USER_UID }));
+        // await api.sendListen(new CoinTransferCommand({ to: SECOND_USER_UID, coinUid: COIN_UID, amount: '1000000' }));
+        // await api.sendListen(new CoinTransferCommand({ to: THIRD_USER_UID, coinUid: COIN_UID, amount: '1000000' }));
+        
+        api.setSecond();
+        // await api.send(new AuctionBidCommand({ auctionUid: 'auction/renat/14998993295469' }));
+        // await api.sendListen(new AuctionPrimaryAddCommand({ nickname: 'renat' }));
+        // await api.send(new AuctionCheckCommand({ uid: 'auction/renat/14999073706560' }));
+        // await api.send(new NicknameTransferCommand({ from: SECOND_USER_UID, to: THIRD_USER_UID }));
+        api.setThird();
+        // await api.send(new AuctionBidCommand({ auctionUid: 'auction/renat/14998993295469' }));
+        // await api.send(new AuctionCheckCommand({ uid: 'auction/renat/14998993295469' }));
+        await api.send(new NicknameTransferCommand({ from: THIRD_USER_UID, to: ROOT_USER_UID }));
+        // await api.send(new NicknameTransferCommand({ from: THIRD_USER_UID, to: SECOND_USER_UID }));
+        // await api.send(new AuctionSecondaryAddCommand({ price: { coinId: 'TRUE', value: '120' } }));
+        // console.log(await api.ledgerRequestSendListen(new TransportFabricCommandAsync('AUCTION:AuctionSecondaryAdd', { price: { coinId: 'TRUE', value: '1000' } })));
+
+        // console.log(await api.ledgerRequestSendListen(new TransportFabricCommandAsync('AUCTION:AuctionBidConditionsGet', { auctionUid: 'auction/renat' })));
+        // console.log(await api.ledgerRequestSendListen(new TransportFabricCommandAsync('AUCTION:AuctionBid', { auctionUid: 'auction/renat' })));
+        // console.log(await api.ledgerRequestSendListen(new TransportFabricCommandAsync('AUCTION:AuctionAdd', { nickname: 'vasya' })));
+        // console.log(await api.ledgerRequestSendListen(new TransportFabricCommandAsync('AUCTION:AuctionBidConditionsGet', { auctionUid: 'auction/renat' })));
+        // console.log(await api.ledgerRequestSendListen(new TransportFabricCommandAsync('AUCTION:AuctionBidConditionsGet', { auctionUid: 'auction/vasya' })));
+        // console.log(await api.ledgerRequestSendListen(new TransportFabricCommandAsync('AUCTION:AuctionCheck', { uid: 'auction/vasya' })));
+        // console.log(await api.ledgerRequestSendListen(new TransportFabricCommandAsync('AUCTION:AuctionGet', { uid: 'auction/renat' })));
+        // console.log(await api.ledgerRequestSendListen(new TransportFabricCommandAsync('AUCTION:AuctionCheck', { uid: 'auction/renat' })));
+        // console.log(await api.ledgerRequestSendListen(new TransportFabricCommandAsync('AUCTION:NicknameTransfer', { to: ROOT_USER_UID })));
+        // console.log(await api.ledgerRequestSendListen(new TransportFabricCommandAsync('AUCTION:AuctionCheck', { uid: 'auction/renat' })));
 
         // console.log(await this.face.search(''));
         // console.log(await this.ledger.coinAdd('TEST', 0));

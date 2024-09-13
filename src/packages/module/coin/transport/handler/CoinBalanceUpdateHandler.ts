@@ -1,15 +1,14 @@
-import { Logger } from '@ts-core/common';
 import { Injectable } from '@nestjs/common';
-import { Transport, TransportCommandHandler } from '@ts-core/common';
+import { Logger, Transport, TransportCommandHandler } from '@ts-core/common';
 import { DatabaseService } from '@project/module/database/service';
 import { ICoinBalanceUpdateDto, CoinBalanceUpdateCommand } from '../CoinBalanceUpdateCommand';
-import * as _ from 'lodash';
-import { CoinObjectBalanceGetCommand } from '@project/common/transport/command/coin';
-import { LedgerApiClient } from '@project/module/ledger/service';
-import { CoinBalanceEntity, CoinEntity } from '@project/module/database/coin';
 import { TransportSocket } from '@ts-core/socket-server';
-import { CoinBalanceEditedEvent } from '@project/common/platform/api/transport';
-import { CoinUtil } from '@project/common/platform/coin';
+import { CoinBalanceEntity, CoinEntity } from '@project/module/database/entity';
+import { CoinBalanceGetCommand } from '@project/common/hlf/auction/transport';
+import { CoinBalanceChangedEvent } from '@project/common/platform/transport';
+import { getCoinBalanceRoom } from '@project/common/platform';
+import { HlfService } from '@project/module/hlf/service';
+import * as _ from 'lodash';
 
 @Injectable()
 export class CoinBalanceUpdateHandler extends TransportCommandHandler<ICoinBalanceUpdateDto, CoinBalanceUpdateCommand> {
@@ -20,7 +19,7 @@ export class CoinBalanceUpdateHandler extends TransportCommandHandler<ICoinBalan
     //
     // --------------------------------------------------------------------------
 
-    constructor(logger: Logger, transport: Transport, private database: DatabaseService, private api: LedgerApiClient, private socket: TransportSocket) {
+    constructor(logger: Logger, transport: Transport, private database: DatabaseService, private hlf: HlfService, private socket: TransportSocket) {
         super(logger, transport, CoinBalanceUpdateCommand.NAME);
     }
 
@@ -31,17 +30,17 @@ export class CoinBalanceUpdateHandler extends TransportCommandHandler<ICoinBalan
     // --------------------------------------------------------------------------
 
     protected async execute(params: ICoinBalanceUpdateDto): Promise<void> {
-        let balance = await this.api.ledgerRequestSendListen(new CoinObjectBalanceGetCommand({ objectUid: params.uid, coinUid: params.coinUid }));
+        let balance = await this.hlf.sendListen(new CoinBalanceGetCommand({ objectUid: params.uid, coinUid: params.coinUid }));
 
-        let item = await this.database.coinBalanceGet(params.coinUid, params.uid);
+        let item = await this.database.coinBalanceGet(params.uid, params.coinUid);
         if (_.isNil(item)) {
             item = new CoinBalanceEntity();
-            item.coin = await CoinEntity.findOneByOrFail({ ledgerUid: params.coinUid });
-            item.ledgerUid = params.uid;
+            item.uid = params.uid;
+            let { id } = await CoinEntity.findOneByOrFail({ uid: params.coinUid });
+            item.coinId = id;
         }
-        CoinBalanceEntity.updateEntity(item, balance);
-        item = await item.save();
+        item = await CoinBalanceEntity.updateEntity(item, balance).save();
 
-        this.socket.dispatch(new CoinBalanceEditedEvent(item.toObject()), { room: CoinUtil.getCoinBalanceRoom(params.uid) });
+        this.socket.dispatch(new CoinBalanceChangedEvent(item.toObject()), { room: getCoinBalanceRoom(params.uid) });
     }
 }

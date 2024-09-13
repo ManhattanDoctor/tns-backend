@@ -4,7 +4,6 @@ import {
     ApiOkResponse,
     ApiOperation,
     ApiForbiddenResponse,
-    ApiHeader,
     ApiTooManyRequestsResponse,
     ApiUnauthorizedResponse,
     ApiBearerAuth,
@@ -23,7 +22,6 @@ export interface ISwaggerDecorators {
     response: Type<any>;
     responseDescription?: string;
     isEnableUnprocessableEntity?: boolean;
-    isDisableBearer?: boolean;
     isDisableBadRequest?: boolean;
     isDisableTooManyRequests?: boolean;
     code?: HttpStatus;
@@ -40,11 +38,6 @@ export function Swagger(swagger: ISwaggerDecorators): any {
     items.push(ApiOperation({ summary: swagger.name }));
     items.push(HttpCode(swagger.code || HttpStatus.OK));
 
-    if (!swagger.isDisableBearer) {
-        items.push(ApiBearerAuth());
-        items.push(ApiUnauthorizedResponse({ description: `Authorization failed` }));
-        items.push(ApiForbiddenResponse({ description: 'Forbidden resource' }));
-    }
     if (!_.isNil(swagger.response)) {
         items.push(ApiOkResponse({ type: swagger.response, description: swagger.responseDescription }));
     }
@@ -52,11 +45,10 @@ export function Swagger(swagger: ISwaggerDecorators): any {
         items.push(ApiBadRequestResponse({ description: 'Bad request' }));
     }
     if (!swagger.isDisableTooManyRequests) {
-        items.push(ApiTooManyRequestsResponse({ description: `Too many requests` }));
+        items.push(ApiTooManyRequestsResponse({ description: 'Too many requests' }));
     }
     if (swagger.isEnableUnprocessableEntity) {
         items.push(ApiUnprocessableEntityResponse());
     }
-
     return applyDecorators(...items);
 }

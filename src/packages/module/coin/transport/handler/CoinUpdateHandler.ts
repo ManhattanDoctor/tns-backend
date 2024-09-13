@@ -1,11 +1,10 @@
-import { Logger } from '@ts-core/common';
 import { Injectable } from '@nestjs/common';
-import { Transport, TransportCommandHandler } from '@ts-core/common';
+import { Logger, Transport, TransportCommandHandler } from '@ts-core/common';
 import { ICoinUpdateDto, CoinUpdateCommand } from '../CoinUpdateCommand';
+import { CoinGetCommand } from '@project/common/hlf/auction/transport';
+import { CoinEntity } from '@project/module/database/entity';
+import { HlfService } from '@project/module/hlf/service';
 import * as _ from 'lodash';
-import { LedgerApiClient } from '@project/module/ledger/service';
-import { CoinGetCommand } from '@project/common/transport/command/coin';
-import { CoinEntity } from '@project/module/database/coin';
 
 @Injectable()
 export class CoinUpdateHandler extends TransportCommandHandler<ICoinUpdateDto, CoinUpdateCommand> {
@@ -16,7 +15,7 @@ export class CoinUpdateHandler extends TransportCommandHandler<ICoinUpdateDto, C
     //
     // --------------------------------------------------------------------------
 
-    constructor(logger: Logger, transport: Transport, private api: LedgerApiClient) {
+    constructor(logger: Logger, transport: Transport, private hlf: HlfService) {
         super(logger, transport, CoinUpdateCommand.NAME);
     }
 
@@ -27,10 +26,9 @@ export class CoinUpdateHandler extends TransportCommandHandler<ICoinUpdateDto, C
     // --------------------------------------------------------------------------
 
     protected async execute(params: ICoinUpdateDto): Promise<void> {
-        let coin = await this.api.ledgerRequestSendListen(new CoinGetCommand({ uid: params.uid }));
+        let coin = await this.hlf.sendListen(new CoinGetCommand({ uid: params.uid }));
         let item = CoinEntity.updateEntity({}, coin);
-
-        let query = CoinEntity.createQueryBuilder().update(item).where('ledgerUid = :ledgerUid', { ledgerUid: params.uid });
+        let query = CoinEntity.createQueryBuilder().update(item).where('uid = :uid', { uid: params.uid });
         await query.execute();
     }
 }
