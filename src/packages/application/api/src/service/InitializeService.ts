@@ -54,15 +54,15 @@ export class InitializeService extends LoggerWrapper {
         // await api.sendListen(new CoinTransferCommand({ to: SECOND_USER_UID, coinUid: COIN_UID, amount: '1000000' }));
         // await api.sendListen(new CoinTransferCommand({ to: THIRD_USER_UID, coinUid: COIN_UID, amount: '1000000' }));
         
-        api.setSecond();
+        // api.setSecond();
         // await api.send(new AuctionBidCommand({ auctionUid: 'auction/renat/14998993295469' }));
         // await api.sendListen(new AuctionPrimaryAddCommand({ nickname: 'renat' }));
         // await api.send(new AuctionCheckCommand({ uid: 'auction/renat/14999073706560' }));
         // await api.send(new NicknameTransferCommand({ from: SECOND_USER_UID, to: THIRD_USER_UID }));
-        api.setThird();
+        // api.setThird();
         // await api.send(new AuctionBidCommand({ auctionUid: 'auction/renat/14998993295469' }));
         // await api.send(new AuctionCheckCommand({ uid: 'auction/renat/14998993295469' }));
-        await api.send(new NicknameTransferCommand({ from: THIRD_USER_UID, to: ROOT_USER_UID }));
+        // await api.send(new NicknameTransferCommand({ from: THIRD_USER_UID, to: ROOT_USER_UID }));
         // await api.send(new NicknameTransferCommand({ from: THIRD_USER_UID, to: SECOND_USER_UID }));
         // await api.send(new AuctionSecondaryAddCommand({ price: { coinId: 'TRUE', value: '120' } }));
         // console.log(await api.ledgerRequestSendListen(new TransportFabricCommandAsync('AUCTION:AuctionSecondaryAdd', { price: { coinId: 'TRUE', value: '1000' } })));
