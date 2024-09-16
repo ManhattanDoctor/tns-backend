@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Logger, LoggerWrapper } from '@ts-core/common';
 import { SelectQueryBuilder } from 'typeorm';
-import { CoinEntity, UserEntity } from '@project/module/database/entity';
+import { AuctionEntity, CoinEntity, NicknameEntity, UserEntity } from '@project/module/database/entity';
 import { CoinBalanceEntity } from '../entity';
 import * as _ from 'lodash';
 
@@ -36,6 +36,46 @@ export class DatabaseService extends LoggerWrapper {
     }
 
     public addUserRelations<T = any>(query: SelectQueryBuilder<T>): void { }
+
+    // --------------------------------------------------------------------------
+    //
+    //  Auction Methods
+    //
+    // --------------------------------------------------------------------------
+
+    public async auctionGet(idOrUid: string | number): Promise<AuctionEntity> {
+        let query = AuctionEntity.createQueryBuilder('auction');
+        if (_.isNumber(idOrUid)) {
+            query.where('auction.id  = :id', { id: idOrUid });
+        }
+        else if (_.isString(idOrUid)) {
+            query.where('auction.uid  = :uid', { uid: idOrUid });
+        }
+        this.addAuctionRelations(query);
+        return query.getOne();
+    }
+
+    public addAuctionRelations<T = any>(query: SelectQueryBuilder<T>): void { }
+
+    // --------------------------------------------------------------------------
+    //
+    //  Nickname Methods
+    //
+    // --------------------------------------------------------------------------
+
+    public async nicknameGet(idOrUid: string | number): Promise<NicknameEntity> {
+        let query = NicknameEntity.createQueryBuilder('nickname');
+        if (_.isNumber(idOrUid)) {
+            query.where('nickname.id  = :id', { id: idOrUid });
+        }
+        else if (_.isString(idOrUid)) {
+            query.where('nickname.uid  = :uid', { uid: idOrUid });
+        }
+        this.addNicknameRelations(query);
+        return query.getOne();
+    }
+
+    public addNicknameRelations<T = any>(query: SelectQueryBuilder<T>): void { }
 
     // --------------------------------------------------------------------------
     //

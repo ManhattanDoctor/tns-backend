@@ -21,8 +21,8 @@ export class HlfModule {
             {
                 provide: HlfApiClient,
                 inject: [Logger, Transport],
-                useFactory: async (logger, transport) => {
-                    let item = new HlfApiClient(logger, settings.ledgerEndpoint, settings.ledgerName);
+                useFactory: async (logger) => {
+                    let item = new HlfApiClient(logger, settings.endpoint, settings.name);
                     item.logCommandFilters.push(item => item.name !== INFO_URL);
                     return item;
                 },
@@ -31,7 +31,7 @@ export class HlfModule {
                 provide: LedgerDatabase,
                 inject: [Logger, Connection],
                 useFactory: async (logger, connection) => {
-                    return new LedgerDatabase(logger, connection, settings.ledgerName);
+                    return new LedgerDatabase(logger, connection, settings.name);
                 },
             },
             {
@@ -59,6 +59,6 @@ export class HlfModule {
 }
 
 export interface IHlfModuleSettings {
-    ledgerName: string;
-    ledgerEndpoint: string;
+    name: string;
+    endpoint: string;
 }

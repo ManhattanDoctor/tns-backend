@@ -16,8 +16,6 @@ export class AuctionBided extends EventParser<IAuctionBidedData, void, void> {
     protected async execute(): Promise<void> {
         let data = TransformUtil.toClass(AuctionBidedData, this.data);
 
-        console.log(this.data);
-        
         let auction = await this.auctionGet(this.data.auctionUid);
 
         let newWinnerUid = data.bidderUid;

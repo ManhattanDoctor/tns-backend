@@ -2,13 +2,13 @@ import { Controller, Get, Query } from '@nestjs/common';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { DefaultController } from '@ts-core/backend-nestjs';
 import { TypeormUtil } from '@ts-core/backend';
-import { Logger, FilterableConditions, FilterableSort, Paginable } from '@ts-core/common';
+import { Logger, FilterableConditions, FilterableSort, IPagination, Paginable } from '@ts-core/common';
 import { IsOptional, IsString } from 'class-validator';
+import { DatabaseService } from '@project/module/database/service';
+import { AUCTION_URL } from '@project/common/platform/api';
 import { Swagger } from '@project/module/swagger';
-import { ACTION_URL } from '@project/common/platform/api';
-import { Action } from '@project/common/platform';
-import { IActionListDto, IActionListDtoResponse } from '@project/common/platform/api/action';
-import { ActionEntity } from '@project/module/database/entity';
+import { Auction } from '@project/common/platform';
+import { AuctionEntity } from '@project/module/database/entity';
 import * as _ from 'lodash';
 
 // --------------------------------------------------------------------------
@@ -17,12 +17,12 @@ import * as _ from 'lodash';
 //
 // --------------------------------------------------------------------------
 
-export class ActionListDto implements IActionListDto {
+export class AuctionListDto implements Paginable<Auction> {
     @ApiPropertyOptional()
-    conditions?: FilterableConditions<Action>;
+    conditions?: FilterableConditions<Auction>;
 
     @ApiPropertyOptional()
-    sort?: FilterableSort<Action>;
+    sort?: FilterableSort<Auction>;
 
     @ApiProperty({ default: Paginable.DEFAULT_PAGE_SIZE })
     pageSize: number;
@@ -36,7 +36,7 @@ export class ActionListDto implements IActionListDto {
     traceId?: string;
 }
 
-export class ActionListDtoResponse implements IActionListDtoResponse {
+export class AuctionListDtoResponse implements IPagination<Auction> {
     @ApiProperty()
     pageSize: number;
 
@@ -49,8 +49,8 @@ export class ActionListDtoResponse implements IActionListDtoResponse {
     @ApiProperty()
     total: number;
 
-    @ApiProperty({ isArray: true, type: Action })
-    items: Array<Action>;
+    @ApiProperty({ isArray: true, type: Auction })
+    items: Array<Auction>;
 }
 
 // --------------------------------------------------------------------------
@@ -59,15 +59,15 @@ export class ActionListDtoResponse implements IActionListDtoResponse {
 //
 // --------------------------------------------------------------------------
 
-@Controller(ACTION_URL)
-export class ActionListController extends DefaultController<IActionListDto, IActionListDtoResponse> {
+@Controller(AUCTION_URL)
+export class AuctionListController extends DefaultController<AuctionListDto, AuctionListDtoResponse> {
     // --------------------------------------------------------------------------
     //
     //  Constructor
     //
     // --------------------------------------------------------------------------
 
-    constructor(logger: Logger) {
+    constructor(logger: Logger, private database: DatabaseService) {
         super(logger);
     }
 
@@ -77,12 +77,13 @@ export class ActionListController extends DefaultController<IActionListDto, IAct
     //
     // --------------------------------------------------------------------------
 
-    @Swagger({ name: 'Get ledger action list', response: ActionListDtoResponse })
+    @Swagger({ name: 'Get auction list', response: AuctionListDtoResponse })
     @Get()
-    public async executeExtended(@Query({ transform: Paginable.transform }) params: ActionListDto): Promise<IActionListDtoResponse> {
-        let query = ActionEntity.createQueryBuilder('action');
+    public async executeExtended(@Query({ transform: Paginable.transform }) params: AuctionListDto): Promise<AuctionListDtoResponse> {
+        let query = AuctionEntity.createQueryBuilder('auction');
+        this.database.addAuctionRelations(query);
         return TypeormUtil.toPagination(query, params, this.transform);
     }
 
-    protected transform = async (item: ActionEntity): Promise<Action> => item.toObject();
+    protected transform = async (item: AuctionEntity): Promise<Auction> => item.toObject();
 }

@@ -1,7 +1,5 @@
 import { DynamicModule, OnApplicationBootstrap, Injectable } from '@nestjs/common';
-import { LoggerModule } from '@ts-core/backend-nestjs';
-import { CacheModule } from '@ts-core/backend-nestjs';
-import { TransportModule, TransportType } from '@ts-core/backend-nestjs';
+import { CacheModule, LoggerModule, TransportModule, TransportType } from '@ts-core/backend-nestjs';
 import { AppSettings } from './AppSettings';
 import { DatabaseModule } from '@project/module/database';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
@@ -11,9 +9,12 @@ import { modulePath, nodeModulePath, nodeModulePathBuild } from '@project/module
 import { UserModule } from '@project/module/user';
 import { InitializeService } from './service';
 import { CoinModule } from '@project/module/coin';
+import { AuctionModule } from '@project/module/auction';
+import { NicknameModule } from '@project/module/nickname';
 import { ActionModule } from '@project/module/action';
 import { HlfModule } from '@project/module/hlf';
 import { SocketModule } from '@project/module/socket';
+import { InitController } from './controller';
 
 @Injectable()
 export class AppModule extends ModeApplication<AppSettings> implements OnApplicationBootstrap {
@@ -33,14 +34,17 @@ export class AppModule extends ModeApplication<AppSettings> implements OnApplica
                 TypeOrmModule.forRoot(this.getOrmConfig(settings)[0]),
                 TransportModule.forRoot({ type: TransportType.LOCAL }),
 
-                HlfModule.forRoot(settings),
+                SocketModule,
+                HlfModule.forRoot(settings.hlf),
 
                 UserModule,
                 CoinModule,
                 ActionModule,
-                SocketModule,
+                AuctionModule,
+                NicknameModule
             ],
             controllers: [
+                InitController
             ],
             providers: [
                 {
@@ -135,5 +139,3 @@ export class AppModule extends ModeApplication<AppSettings> implements OnApplica
         await this.service.initialize();
     }
 }
-
-

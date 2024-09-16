@@ -1,7 +1,6 @@
 import { IDatabaseSettings, IWebSettings, EnvSettingsStorage } from '@ts-core/backend';
 import { ILogger, LoggerLevel } from '@ts-core/common';
 
-
 export class AppSettings extends EnvSettingsStorage implements IWebSettings, IDatabaseSettings {
     // --------------------------------------------------------------------------
     //
@@ -71,25 +70,12 @@ export class AppSettings extends EnvSettingsStorage implements IWebSettings, IDa
     //
     // --------------------------------------------------------------------------
 
-    public get ledgerName(): string {
-        return this.getValue('LEDGER_NAME');
+    public get hlf(): IHlfOptions {
+        return { name: this.getValue('HLF_NAME'), endpoint: this.getValue('HLF_ENDPOINT') };
     }
+}
 
-    public get ledgerEndpoint(): string {
-        return this.getValue('LEDGER_ENDPOINT');
-    }
-
-    // --------------------------------------------------------------------------
-    //
-    //  Google Properties
-    //
-    // --------------------------------------------------------------------------
-
-    public get goSiteId(): string {
-        return this.getValue('GO_SITE_ID');
-    }
-
-    public get goSiteSecret(): string {
-        return this.getValue('GO_SITE_SECRET');
-    }
+export interface IHlfOptions {
+    name: string;
+    endpoint: string;
 }

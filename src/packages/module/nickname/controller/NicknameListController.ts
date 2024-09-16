@@ -2,13 +2,13 @@ import { Controller, Get, Query } from '@nestjs/common';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { DefaultController } from '@ts-core/backend-nestjs';
 import { TypeormUtil } from '@ts-core/backend';
-import { Logger, FilterableConditions, FilterableSort, Paginable } from '@ts-core/common';
+import { Logger, FilterableConditions, FilterableSort, IPagination, Paginable } from '@ts-core/common';
 import { IsOptional, IsString } from 'class-validator';
+import { DatabaseService } from '@project/module/database/service';
+import { USER_URL } from '@project/common/platform/api';
 import { Swagger } from '@project/module/swagger';
-import { ACTION_URL } from '@project/common/platform/api';
-import { Action } from '@project/common/platform';
-import { IActionListDto, IActionListDtoResponse } from '@project/common/platform/api/action';
-import { ActionEntity } from '@project/module/database/entity';
+import { Nickname } from '@project/common/platform';
+import { NicknameEntity } from '@project/module/database/entity';
 import * as _ from 'lodash';
 
 // --------------------------------------------------------------------------
@@ -17,12 +17,12 @@ import * as _ from 'lodash';
 //
 // --------------------------------------------------------------------------
 
-export class ActionListDto implements IActionListDto {
+export class NicknameListDto implements Paginable<Nickname> {
     @ApiPropertyOptional()
-    conditions?: FilterableConditions<Action>;
+    conditions?: FilterableConditions<Nickname>;
 
     @ApiPropertyOptional()
-    sort?: FilterableSort<Action>;
+    sort?: FilterableSort<Nickname>;
 
     @ApiProperty({ default: Paginable.DEFAULT_PAGE_SIZE })
     pageSize: number;
@@ -36,7 +36,7 @@ export class ActionListDto implements IActionListDto {
     traceId?: string;
 }
 
-export class ActionListDtoResponse implements IActionListDtoResponse {
+export class NicknameListDtoResponse implements IPagination<Nickname> {
     @ApiProperty()
     pageSize: number;
 
@@ -49,8 +49,8 @@ export class ActionListDtoResponse implements IActionListDtoResponse {
     @ApiProperty()
     total: number;
 
-    @ApiProperty({ isArray: true, type: Action })
-    items: Array<Action>;
+    @ApiProperty({ isArray: true, type: Nickname })
+    items: Array<Nickname>;
 }
 
 // --------------------------------------------------------------------------
@@ -59,15 +59,15 @@ export class ActionListDtoResponse implements IActionListDtoResponse {
 //
 // --------------------------------------------------------------------------
 
-@Controller(ACTION_URL)
-export class ActionListController extends DefaultController<IActionListDto, IActionListDtoResponse> {
+@Controller(USER_URL)
+export class NicknameListController extends DefaultController<NicknameListDto, NicknameListDtoResponse> {
     // --------------------------------------------------------------------------
     //
     //  Constructor
     //
     // --------------------------------------------------------------------------
 
-    constructor(logger: Logger) {
+    constructor(logger: Logger, private database: DatabaseService) {
         super(logger);
     }
 
@@ -77,12 +77,13 @@ export class ActionListController extends DefaultController<IActionListDto, IAct
     //
     // --------------------------------------------------------------------------
 
-    @Swagger({ name: 'Get ledger action list', response: ActionListDtoResponse })
+    @Swagger({ name: 'Get auction list', response: NicknameListDtoResponse })
     @Get()
-    public async executeExtended(@Query({ transform: Paginable.transform }) params: ActionListDto): Promise<IActionListDtoResponse> {
-        let query = ActionEntity.createQueryBuilder('action');
+    public async executeExtended(@Query({ transform: Paginable.transform }) params: NicknameListDto): Promise<NicknameListDtoResponse> {
+        let query = NicknameEntity.createQueryBuilder('auction');
+        this.database.addNicknameRelations(query);
         return TypeormUtil.toPagination(query, params, this.transform);
     }
 
-    protected transform = async (item: ActionEntity): Promise<Action> => item.toObject();
+    protected transform = async (item: NicknameEntity): Promise<Nickname> => item.toObject();
 }

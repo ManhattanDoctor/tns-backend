@@ -60,7 +60,6 @@ export class HlfBlockParseHandler extends LedgerBlockParseHandlerBase<IEffects> 
         let socketEvents = new Array();
 
         let entities = new Array();
-        console.log(item.events);
         for (let event of item.events) {
             let ClassParser = this.parsers.get(event.name);
             if (_.isNil(ClassParser)) {
