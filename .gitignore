@@ -31,4 +31,9 @@ yarn-error.log
 
 # env
 src/**/.env
-packages/application/api/build/
+packages/application/api/build/*
+
+
+
+
+
