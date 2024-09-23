@@ -19,7 +19,7 @@ export class UserEntity extends TypeormValidableEntity implements User {
 
     public static updateEntity(item: Partial<UserEntity>, user: HlfUser): Partial<UserEntity> {
         ObjectUtil.copyProperties(user, item);
-        item.address = user.address;
+        item.address = User.getAddressByUid(user);
         return item;
     }
 
@@ -80,4 +80,11 @@ export class UserEntity extends TypeormValidableEntity implements User {
     public toObject(options?: ClassTransformOptions): User {
         return TransformUtil.fromClass<User>(this, options);
     }
+
+    // --------------------------------------------------------------------------
+    //
+    //  Public Properties
+    //
+    // --------------------------------------------------------------------------
+
 }

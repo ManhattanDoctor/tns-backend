@@ -19,7 +19,7 @@ export class NicknameEntity extends TypeormValidableEntity implements Nickname {
 
     public static updateEntity(item: Partial<NicknameEntity>, nickname: HlfNickname): Partial<NicknameEntity> {
         ObjectUtil.copyProperties(nickname, item);
-        item.nickname = nickname.nickname;
+        item.nickname = Nickname.getNicknameByUid(nickname);
         return item;
     }
 

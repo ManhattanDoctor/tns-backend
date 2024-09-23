@@ -5,7 +5,7 @@ import { TypeormUtil } from '@ts-core/backend';
 import { Logger, FilterableConditions, FilterableSort, IPagination, Paginable } from '@ts-core/common';
 import { IsOptional, IsString } from 'class-validator';
 import { DatabaseService } from '@project/module/database/service';
-import { USER_URL } from '@project/common/platform/api';
+import { NICKNAME_URL } from '@project/common/platform/api';
 import { Swagger } from '@project/module/swagger';
 import { Nickname } from '@project/common/platform';
 import { NicknameEntity } from '@project/module/database/entity';
@@ -59,7 +59,7 @@ export class NicknameListDtoResponse implements IPagination<Nickname> {
 //
 // --------------------------------------------------------------------------
 
-@Controller(USER_URL)
+@Controller(NICKNAME_URL)
 export class NicknameListController extends DefaultController<NicknameListDto, NicknameListDtoResponse> {
     // --------------------------------------------------------------------------
     //
@@ -77,7 +77,7 @@ export class NicknameListController extends DefaultController<NicknameListDto, N
     //
     // --------------------------------------------------------------------------
 
-    @Swagger({ name: 'Get auction list', response: NicknameListDtoResponse })
+    @Swagger({ name: 'Get nickname list', response: NicknameListDtoResponse })
     @Get()
     public async executeExtended(@Query({ transform: Paginable.transform }) params: NicknameListDto): Promise<NicknameListDtoResponse> {
         let query = NicknameEntity.createQueryBuilder('auction');

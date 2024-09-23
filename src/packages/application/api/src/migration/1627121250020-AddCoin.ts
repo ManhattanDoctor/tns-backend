@@ -32,6 +32,9 @@ export class AddCoin1627121250020 implements MigrationInterface {
                 "coin_id" integer
                     constraint "coin_balance_coin_id_fkey" references "coin",
 
+                "coin_uid" varchar not null,
+                "decimals" integer not null,
+
                 "uid" varchar not null,
                 "held" varchar not null,
                 "total" varchar not null,

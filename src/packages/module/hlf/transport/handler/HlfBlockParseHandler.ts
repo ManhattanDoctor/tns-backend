@@ -57,7 +57,7 @@ export class HlfBlockParseHandler extends LedgerBlockParseHandlerBase<IEffects> 
     protected async parse(manager: EntityManager, item: LedgerBlock, info: ILedgerInfo): Promise<IEffects> {
         let events = new Array();
         let commands = new Array();
-        let socketEvents = new Array();
+        let socketEvents = new Array<IEventSocketEvent<any>>();
 
         let entities = new Array();
         for (let event of item.events) {
@@ -84,6 +84,8 @@ export class HlfBlockParseHandler extends LedgerBlockParseHandlerBase<IEffects> 
         }
         try {
             await manager.save(entities);
+            commands.forEach(item => this.transport.send(item));
+            socketEvents.forEach(item => this.socket.dispatch(item.event, item.options));
         }
         catch (error) {
             console.log(error);

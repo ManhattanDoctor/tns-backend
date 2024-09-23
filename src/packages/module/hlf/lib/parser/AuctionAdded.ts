@@ -16,7 +16,7 @@ export class AuctionAdded extends EventParser<Auction, void, void> {
     protected async execute(): Promise<void> {
         let user = await this.userGet(this.userId);
         let auction = TransformUtil.toClass(Auction, this.data);
-        let nicknameUid = Nickname.createUid(auction.nickname);
+        let nicknameUid = Nickname.createUid(Auction.getNicknameByUid(auction));
 
         let item = new AuctionEntity();
         item.status = AuctionStatus.IN_PROGRESS;

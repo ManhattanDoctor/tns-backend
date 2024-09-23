@@ -54,6 +54,8 @@ export class AddRootObjects1627121260000 implements MigrationInterface {
         let balance = new CoinBalanceEntity();
         balance.uid = AclVariables.root.uid;
         balance.held = '0';
+        balance.coinUid = coin.uid;
+        balance.decimals = coin.decimals;
         balance.inUse = balance.total = AuctionVariable.coin.amount;
         balance.coinId = coin.id;
         balance = await runner.connection.getRepository(CoinBalanceEntity).save(balance);

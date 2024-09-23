@@ -7,7 +7,7 @@ import { IsString, IsOptional } from 'class-validator';
 import { getType, HlfObjectType } from '@project/common/hlf';
 import { IHlfObjectDetails, HLF_OBJECT_DETAILS_URL, hlfObjectPicture } from '@project/common/platform/api';
 import { IHlfObjectDetailsGetDto, IHlfObjectDetailsGetDtoResponse } from '@project/common/platform/api/hlf';
-import { UserEntity } from '@project/module/database/entity';
+import { AuctionEntity, NicknameEntity, UserEntity } from '@project/module/database/entity';
 import * as _ from 'lodash';
 
 // --------------------------------------------------------------------------
@@ -48,8 +48,16 @@ export class HlfObjectDetailsGetController extends DefaultController<IHlfObjectD
         let { uid } = params;
         let type = getType(uid);
         if (type === HlfObjectType.USER) {
-            let item = await UserEntity.createQueryBuilder('item').where('item.uid  = :uid', { uid }).leftJoinAndSelect('item.preferences', 'itemPreferences').getOne();
-            return { id: item.id, name: item.address, picture: hlfObjectPicture(uid), type };
+            let item = await UserEntity.createQueryBuilder('item').where('item.uid  = :uid', { uid }).getOne();
+            return { id: item.id, name: item.address, picture: hlfObjectPicture(uid, { display: 'monsterid' }), type };
+        }
+        else if (type === HlfObjectType.NICKNAME) {
+            let item = await NicknameEntity.createQueryBuilder('item').where('item.uid  = :uid', { uid }).getOne();
+            return { id: item.id, name: item.nickname, picture: hlfObjectPicture(uid, { display: 'retro' }), type };
+        }
+        else if (type === HlfObjectType.AUCTION) {
+            let item = await AuctionEntity.createQueryBuilder('item').where('item.uid  = :uid', { uid }).getOne();
+            return { id: item.id, name: item.nickname, picture: hlfObjectPicture(uid), type };
         }
         throw new ExtendedError(`Unknown "${type}" type`);
     }

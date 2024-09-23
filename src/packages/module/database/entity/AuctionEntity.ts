@@ -21,7 +21,7 @@ export class AuctionEntity extends TypeormValidableEntity implements Auction {
 
     public static updateEntity(item: Partial<AuctionEntity>, auction: HlfAuction): Partial<AuctionEntity> {
         ObjectUtil.copyProperties(auction, item);
-        item.nickname = auction.nickname;
+        item.nickname = Auction.getNicknameByUid(auction);
         return item;
     }
 

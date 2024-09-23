@@ -97,8 +97,8 @@ export class DatabaseService extends LoggerWrapper {
 
     public async coinBalanceGet(uid: string, coinUid: string): Promise<CoinBalanceEntity> {
         let query = CoinBalanceEntity.createQueryBuilder('coinBalance');
-        query.where('coin.uid = :coinUid', { coinUid });
-        query.andWhere('coinBalance.uid = :uid', { uid });
+        query.where('coinBalance.uid = :uid', { uid });
+        query.andWhere('coinBalance.coinUid = :coinUid', { coinUid });
         this.addCoinBalanceRelations(query);
         this.addCoinRelations(query);
         return query.getOne();
@@ -107,6 +107,6 @@ export class DatabaseService extends LoggerWrapper {
     public addCoinRelations<T = any>(query: SelectQueryBuilder<T>): void { }
 
     public addCoinBalanceRelations<T = any>(query: SelectQueryBuilder<T>): void {
-        query.leftJoinAndSelect('coinBalance.coin', 'coin');
+        // query.leftJoinAndSelect('coinBalance.coin', 'coin');
     }
 }

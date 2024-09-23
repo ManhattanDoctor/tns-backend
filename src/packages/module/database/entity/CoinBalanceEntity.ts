@@ -1,11 +1,12 @@
 import { MathUtil, ObjectUtil, TransformUtil } from '@ts-core/common';
 import { Exclude, Type, ClassTransformOptions } from 'class-transformer';
-import { IsString, IsNumber, IsNumberString, IsOptional, ValidateNested } from 'class-validator';
+import { IsString, Matches, IsNumber, IsInt, Min, IsNumberString, IsOptional, ValidateNested } from 'class-validator';
 import { CreateDateColumn, JoinColumn, ManyToOne, UpdateDateColumn, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { CoinEntity } from './CoinEntity';
 import { TypeormValidableEntity } from '@ts-core/backend';
 import { CoinBalance } from '@project/common/platform';
 import { CoinBalance as HlfCoinBalance } from '@project/common/hlf/auction';
+import { RegExpUtil } from '@project/common/util';
 import * as _ from 'lodash';
 
 @Entity({ name: 'coin_balance' })
@@ -28,13 +29,11 @@ export class CoinBalanceEntity extends TypeormValidableEntity implements CoinBal
     //
     // --------------------------------------------------------------------------
 
-    @Exclude()
     @PrimaryGeneratedColumn()
     @IsOptional()
     @IsNumber()
     public id: number;
 
-    @Exclude()
     @Column()
     @IsString()
     public uid: string;
@@ -51,6 +50,15 @@ export class CoinBalanceEntity extends TypeormValidableEntity implements CoinBal
     @IsNumberString()
     public total: string;
 
+    @Column()
+    @IsInt()
+    @Min(0)
+    public decimals: number;
+
+    @Column({ name: 'coin_uid' })
+    @Matches(RegExpUtil.COIN_UID_REG_EXP)
+    public coinUid: string;
+
     @Exclude()
     @CreateDateColumn()
     public created: Date;
@@ -63,6 +71,7 @@ export class CoinBalanceEntity extends TypeormValidableEntity implements CoinBal
     @Column({ name: 'coin_id' })
     public coinId: number;
 
+    @Exclude()
     @ManyToOne(() => CoinEntity, item => item.balances)
     @JoinColumn({ name: "coin_id" })
     @ValidateNested()
