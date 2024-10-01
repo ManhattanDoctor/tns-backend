@@ -61,7 +61,8 @@ export class ActionEntity extends TypeormValidableEntity implements Action {
 
     @Column({ name: 'initiator_uid' })
     @Matches(RegExpUtil.USER_UID_REG_EXP)
-    public initiatorUid: string;
+    @IsOptional()
+    public initiatorUid?: string;
 
     @Column({ name: 'user_uid', nullable: true })
     @Matches(RegExpUtil.USER_UID_REG_EXP)

@@ -16,16 +16,16 @@ export class NicknameTransferred extends EventParser<INicknameTransferredEventDt
 
         let details = { nicknameUid: nickname.uid };
 
-        this.action(ActionType.NICKNAME_TRANSFER_RECEIVE, to.uid, details);
+        this.actionAdd(ActionType.NICKNAME_TRANSFER_RECEIVE, to.uid, details);
         to.nicknameUid = nickname.uid;
-        this.entity(to);
+        this.entityAdd(to);
 
-        this.action(ActionType.NICKNAME_TRANSFER_SENT, from.uid, details);
+        this.actionAdd(ActionType.NICKNAME_TRANSFER_SENT, from.uid, details);
         from.nicknameUid = null;
-        this.entity(from);
+        this.entityAdd(from);
 
-        this.action(ActionType.NICKNAME_OWNER_CHANGED, nickname.uid, details);
+        this.actionAdd(ActionType.NICKNAME_OWNER_CHANGED, nickname.uid, details);
         nickname.ownerUid = to.uid;
-        this.entity(nickname);
+        this.entityAdd(nickname);
     }
 }

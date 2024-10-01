@@ -43,7 +43,6 @@ export class CoinBalanceUpdateHandler extends TransportCommandHandler<ICoinBalan
             item.decimals = decimals;
         }
         item = await CoinBalanceEntity.updateEntity(item, balance).save();
-
         this.socket.dispatch(new CoinBalanceChangedEvent(item.toObject()), { room: getCoinBalanceRoom(params.uid) });
     }
 }

@@ -57,7 +57,7 @@ export class HlfObjectDetailsGetController extends DefaultController<IHlfObjectD
         }
         else if (type === HlfObjectType.AUCTION) {
             let item = await AuctionEntity.createQueryBuilder('item').where('item.uid  = :uid', { uid }).getOne();
-            return { id: item.id, name: item.nickname, picture: hlfObjectPicture(uid), type };
+            return { id: item.id, name: item.nickname, picture: hlfObjectPicture(uid, {}), type };
         }
         throw new ExtendedError(`Unknown "${type}" type`);
     }

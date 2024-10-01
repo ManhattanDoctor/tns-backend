@@ -35,6 +35,7 @@ export class AppModule extends ModeApplication<AppSettings> implements OnApplica
                 TransportModule.forRoot({ type: TransportType.LOCAL }),
 
                 SocketModule,
+                
                 HlfModule.forRoot(settings.hlf),
 
                 UserModule,

@@ -2,7 +2,7 @@ import { IAuctionBidedData, AuctionBidedData } from "@project/common/hlf/auction
 import { EventParser } from "../EventParser";
 import { TransformUtil } from "@ts-core/common";
 import { Nickname } from "@project/common/hlf/auction";
-import { ActionType } from "@project/common/platform";
+import { ActionType, getAuctionRoom } from "@project/common/platform";
 import { AuctionChangedEvent } from "@project/common/platform/transport";
 import * as _ from 'lodash';
 
@@ -24,15 +24,15 @@ export class AuctionBided extends EventParser<IAuctionBidedData, void, void> {
         auction.price = data.price;
         auction.expired = data.expired;
         auction.bidderUid = data.bidderUid;
-        this.entity(auction);
+        this.entityAdd(auction);
 
         let nicknameUid = Nickname.createUid(auction.nickname);
 
         let details = { auctionUid: auction.uid, nicknameUid };
-        this.action(ActionType.AUCTION_BIDED, auction.uid, details);
-        this.action(ActionType.AUCTION_BID_MADE, newWinnerUid, details);
-        this.action(ActionType.AUCTION_BID_BITTEN, oldWinnerUid, details);
+        this.actionAdd(ActionType.AUCTION_BIDED, auction.uid, details);
+        this.actionAdd(ActionType.AUCTION_BID_MADE, newWinnerUid, details);
+        this.actionAdd(ActionType.AUCTION_BID_BITTEN, oldWinnerUid, details);
 
-        this.socketEvent({ event: new AuctionChangedEvent(auction.toObject()) });
+        this.socketEventAdd({ event: new AuctionChangedEvent(auction.toObject()), options: { room: getAuctionRoom(auction.id) } });
     }
 }

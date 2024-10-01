@@ -1,9 +1,9 @@
 import { IAuctionFinishedData } from "@project/common/hlf/auction/transport";
 import { EventParser } from "../EventParser";
 import { Nickname } from "@project/common/hlf/auction";
-import { AuctionEntity } from "@project/module/database/entity";
-import { ActionType, AuctionStatus } from "@project/common/platform";
+import { ActionType, AuctionStatus, getAuctionRoom } from "@project/common/platform";
 import { AuctionChangedEvent, UserChangedEvent } from "@project/common/platform/transport";
+import { getUserRoom } from "@project/common/platform";
 import * as _ from 'lodash';
 
 export class AuctionFinished extends EventParser<IAuctionFinishedData, void, void> {
@@ -18,23 +18,23 @@ export class AuctionFinished extends EventParser<IAuctionFinishedData, void, voi
         let auction = await this.auctionGet(this.data.auctionUid);
         auction.status = isSucceed ? AuctionStatus.COMPLETED : AuctionStatus.FAILED;
         auction.finished = new Date();
-        this.entity(auction);
+        this.entityAdd(auction);
 
         let nicknameUid = Nickname.createUid(auction.nickname);
 
         let details = { auctionUid: auction.uid, nicknameUid };
-        this.action(ActionType.AUCTION_FINISHED, auction.uid, details);
-        this.action(ActionType.AUCTION_FINISHED, nicknameUid, details);
+        this.actionAdd(ActionType.AUCTION_FINISHED, auction.uid, details);
+        this.actionAdd(ActionType.AUCTION_FINISHED, nicknameUid, details);
 
         if (isSucceed) {
-            this.action(ActionType.NICKNAME_ASSIGNED, auction.winnerUid, details);
+            this.actionAdd(ActionType.NICKNAME_ASSIGNED, auction.winnerUid, details);
 
             let user = await this.userGet(auction.winnerUid);
             user.nicknameUid = nicknameUid;
-            this.entity(user);
+            this.entityAdd(user);
 
-            this.socketEvent({ event: new UserChangedEvent(user.toObject()) });
+            this.socketEventAdd({ event: new UserChangedEvent(user.toObject()),   options: { room: getUserRoom(auction.id) } });
         }
-        this.socketEvent({ event: new AuctionChangedEvent(auction.toObject()) });
+        this.socketEventAdd({ event: new AuctionChangedEvent(auction.toObject()), options: { room: getAuctionRoom(auction.id) } });
     }
 }

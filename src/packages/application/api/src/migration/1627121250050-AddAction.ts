@@ -20,7 +20,8 @@ export class AddAction1627121250050 implements MigrationInterface {
                 "request_id" varchar not null,
                 "object_uid" varchar not null,
                 "is_executed" boolean not null,
-                "initiator_uid" varchar not null,
+
+                "initiator_uid" varchar,
 
                 "user_uid" varchar,
                 "coin_uid" varchar,

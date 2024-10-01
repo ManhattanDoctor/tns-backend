@@ -17,11 +17,11 @@ export class NicknameAdded extends EventParser<Nickname, void, void> {
         let nickname = TransformUtil.toClass(Nickname, this.data);
         
         let item = NicknameEntity.updateEntity(new NicknameEntity(), nickname);
-        this.entity(item);
+        this.entityAdd(item);
 
         let details = { nicknameUid: nickname.uid };
-        this.action(ActionType.NICKNAME_ADDED, nickname.uid, details);
-        this.action(ActionType.NICKNAME_OWNER_CHANGED, nickname.uid, details);
-        this.socketEvent({ event: new NicknameAddedEvent(item.toObject()) });
+        this.actionAdd(ActionType.NICKNAME_ADDED, nickname.uid, details);
+        this.actionAdd(ActionType.NICKNAME_OWNER_CHANGED, nickname.uid, details);
+        this.socketEventAdd({ event: new NicknameAddedEvent(item.toObject()) });
     }
 }

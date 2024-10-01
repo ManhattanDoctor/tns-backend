@@ -14,4 +14,5 @@ export class TransportSocketImpl extends CoreTransportSocket {
     constructor(logger: Logger, socket: TransportSocketServer) {
         super(logger, {}, socket);
     }
+
 }

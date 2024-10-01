@@ -1,15 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { Logger, Transport, ObjectUtil, LoggerWrapper } from '@ts-core/common';
+import { Logger, ISignature, Transport, ObjectUtil, LoggerWrapper } from '@ts-core/common';
 import { DatabaseService } from '@project/module/database/service';
 import { TransportSocket } from '@ts-core/socket-server';
 import { COIN_UID, HlfService, PLATFORM_USER_UID, ROOT_USER_UID, SECOND_USER_PRIVATE_KEY, SECOND_USER_PUBLIC_KEY, SECOND_USER_UID, THIRD_USER_PRIVATE_KEY, THIRD_USER_PUBLIC_KEY, THIRD_USER_UID } from '@project/module/hlf/service';
 import { UserAddCommand, UserGetCommand } from '@project/common/hlf/acl/transport';
-import { TransportCryptoManagerMetamaskBackend } from '@ts-core/crypto-metamask-backend';
-import { personalSign } from '@metamask/eth-sig-util';
+import { TransportCryptoManagerMetamaskBackend, Metamask } from '@ts-core/crypto-metamask-backend';
+import { personalSign, recoverPersonalSignature } from '@metamask/eth-sig-util';
 import * as _ from 'lodash';
 import { LedgerBlockParseCommand } from '@hlf-explorer/monitor';
 import { AuctionBidCommand, AuctionCheckCommand, AuctionPrimaryAddCommand, AuctionSecondaryAddCommand, CoinEmitCommand, CoinTransferCommand, NicknameTransferCommand } from '@project/common/hlf/auction/transport';
 import { CoinBalanceUpdateCommand, CoinUpdateCommand } from '@project/module/coin/transport';
+import { Variables } from '@project/common/hlf/acl';
+import { UserAddedEvent } from '@project/common/platform/transport';
 
 @Injectable()
 export class InitializeService extends LoggerWrapper {
@@ -30,6 +32,7 @@ export class InitializeService extends LoggerWrapper {
     constructor(
         logger: Logger,
         private transport: Transport,
+        private socket: TransportSocket,
         private hlf: HlfService
     ) {
         super(logger);
@@ -44,16 +47,27 @@ export class InitializeService extends LoggerWrapper {
     public async initialize(): Promise<void> {
         await this.hlf.initialize();
 
-        // this.transport.send(new LedgerBlockParseCommand({ number: 12 }));
+        // this.transport.send(new LedgerBlockParseCommand({ number: 8 }));
 
+        /*
         let api = this.hlf;
         api.setRoot();
-        
+        let signature: ISignature ={
+            "value": "0xd4d10d55c3ad23e94fc928a01a5c40212de4f633754dc053333c7f1a24495b8100355d635785f7f13a334c85330ce37166d73cf4c9c25f43fec477919ef8e31f1b",
+            "publicKey": "0x8e20ea4fa57f19624b9878173589852ca4d41dad",
+            "algorithm": "KeccakMetamask",
+            "nonce": "1726747980606"
+        }
+        console.log(signature);
+        let address = Metamask.verify(`${Variables.signature.message}_${signature.nonce}`, signature.value, signature.publicKey);
+        console.log(address);
+        */
+
         // await api.sendListen(new UserAddCommand({ signature: { publicKey: SECOND_USER_PUBLIC_KEY, algorithm: TransportCryptoManagerMetamaskBackend.ALGORITHM, value: personalSign({ data: '1', privateKey: Buffer.from(SECOND_USER_PRIVATE_KEY, 'hex') }), nonce: '1' }, inviterUid: PLATFORM_USER_UID }));
         // await api.sendListen(new UserAddCommand({ signature: { publicKey: THIRD_USER_PUBLIC_KEY, algorithm: TransportCryptoManagerMetamaskBackend.ALGORITHM, value: personalSign({ data: '1', privateKey: Buffer.from(THIRD_USER_PRIVATE_KEY, 'hex') }), nonce: '1' }, inviterUid: SECOND_USER_UID }));
         // await api.sendListen(new CoinTransferCommand({ to: SECOND_USER_UID, coinUid: COIN_UID, amount: '1000000' }));
         // await api.sendListen(new CoinTransferCommand({ to: THIRD_USER_UID, coinUid: COIN_UID, amount: '1000000' }));
-        
+
         // api.setSecond();
         // await api.send(new AuctionBidCommand({ auctionUid: 'auction/renat/14998993295469' }));
         // await api.sendListen(new AuctionPrimaryAddCommand({ nickname: 'renat' }));

@@ -17,10 +17,10 @@ export class UserAdded extends EventParser<User, void, void> {
         let user = TransformUtil.toClass(User, this.data);
 
         let item = UserEntity.updateEntity(new UserEntity(), user)
-        this.entity(item);
+        this.entityAdd(item);
 
         let details = { userUid: user.uid };
-        this.action(ActionType.USER_ADDED, user.uid, details);
-        this.socketEvent({ event: new UserAddedEvent(item.toObject()) });
+        this.actionAdd(ActionType.USER_ADDED, user.uid, details);
+        this.socketEventAdd({ event: new UserAddedEvent(item.toObject()) });
     }
 }

@@ -14,11 +14,11 @@ export class CoinTransferred extends EventParser<ICoinTransferEventDto, void, vo
         let coin = await this.coinGet(this.data.coinUid);
         
         let details = { coinUid: this.data.coinUid, amount: this.data.amount, decimals: coin.decimals, userUid: this.userId };
-        this.action(ActionType.COIN_TRANSFER_SENT, this.data.from, details);
-        this.action(ActionType.COIN_TRANSFER_RECEIVE, this.data.to, details);
+        this.actionAdd(ActionType.COIN_TRANSFER_SENT, this.data.from, details);
+        this.actionAdd(ActionType.COIN_TRANSFER_RECEIVE, this.data.to, details);
 
-        this.command(new CoinUpdateCommand({ uid: this.data.coinUid }));
-        this.command(new CoinBalanceUpdateCommand({ uid: this.data.to, coinUid: this.data.coinUid }));
-        this.command(new CoinBalanceUpdateCommand({ uid: this.data.from, coinUid: this.data.coinUid }));
+        this.commandAdd(new CoinUpdateCommand({ uid: this.data.coinUid }));
+        this.commandAdd(new CoinBalanceUpdateCommand({ uid: this.data.to, coinUid: this.data.coinUid }));
+        this.commandAdd(new CoinBalanceUpdateCommand({ uid: this.data.from, coinUid: this.data.coinUid }));
     }
 }

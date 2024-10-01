@@ -11,7 +11,7 @@
         "migration:run": "npm run typeorm migration:run -- -d ormconfig.migration.ts",
         "schema:drop": "npm run typeorm schema:drop -- -d ormconfig.migration.ts",
         "seed:run": "npm run typeorm migration:run -- -d ormconfig.seed.ts",
-        "reset": "npm run schema:drop && npm run migration:run && npm run seed:run"
+        "reset": "npm run schema:drop && npm run migration:run && npm run seed:run && npm run start"
     },
     "dependencies": {
         "cache-manager-memory-store": "^1.1.0",
