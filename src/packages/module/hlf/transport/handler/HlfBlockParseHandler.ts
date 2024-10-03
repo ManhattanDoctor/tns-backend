@@ -11,7 +11,6 @@ import * as _ from 'lodash';
 
 @Injectable()
 export class HlfBlockParseHandler extends LedgerBlockParseHandler {
-
     // --------------------------------------------------------------------------
     //
     //  Constructor
@@ -20,7 +19,6 @@ export class HlfBlockParseHandler extends LedgerBlockParseHandler {
 
     constructor(logger: Logger, transport: Transport, database: LedgerDatabase, api: LedgerApiClient, private databaseService: DatabaseService, private socket: TransportSocket) {
         super(logger, transport, database, api);
-
 
         this.parserAdd(AclEvent.USER_ADDED, UserAdded);
 
