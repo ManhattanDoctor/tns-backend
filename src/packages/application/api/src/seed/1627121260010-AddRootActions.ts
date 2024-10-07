@@ -36,7 +36,7 @@ export class AddRootActions1627121260010 implements MigrationInterface {
         items.push(new ActionEntity(ActionType.NICKNAME_ADDED, nickname.uid, { nicknameUid: nickname.uid }, transaction));
 
         items.push(new ActionEntity(ActionType.COIN_ADDED, coin.uid, { coinUid: coin.uid }, transaction));
-        items.push(new ActionEntity(ActionType.COIN_EMITTED, root.uid, { coinUid: coin.uid, amount: AuctionVariable.coin.amount, decimals: coin.decimals }, transaction));
+        items.push(new ActionEntity(ActionType.COIN_EMITTED, root.uid, { coinUid: coin.uid, amount: AuctionVariable.coin.amount }, transaction));
 
         await repository.save(items);
     }

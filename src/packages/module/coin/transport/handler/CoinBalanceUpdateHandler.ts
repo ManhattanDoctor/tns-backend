@@ -36,11 +36,10 @@ export class CoinBalanceUpdateHandler extends TransportCommandHandler<ICoinBalan
         if (_.isNil(item)) {
             item = new CoinBalanceEntity();
             item.uid = params.uid;
-            
-            let { id, uid, decimals } = await CoinEntity.findOneByOrFail({ uid: params.coinUid });
+
+            let { id, uid } = await CoinEntity.findOneByOrFail({ uid: params.coinUid });
             item.coinId = id;
             item.coinUid = uid;
-            item.decimals = decimals;
         }
         item = await CoinBalanceEntity.updateEntity(item, balance).save();
         this.socket.dispatch(new CoinBalanceChangedEvent(item.toObject()), { room: getCoinBalanceRoom(params.uid) });

@@ -28,8 +28,7 @@ export class AddAction1627121250050 implements MigrationInterface {
                 "auction_uid" varchar,
                 "nickname_uid" varchar,
 
-                "amount" varchar,
-                "decimals" integer
+                "amount" varchar
             );
         `;
         await queryRunner.query(sql);

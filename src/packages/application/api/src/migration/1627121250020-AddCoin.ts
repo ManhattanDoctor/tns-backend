@@ -15,10 +15,7 @@ export class AddCoin1627121250020 implements MigrationInterface {
                     constraint "coin_id_pkey" primary key,
                 "uid" varchar not null 
                     constraint "coin_uid_ukey" unique,
-                "coin_id" varchar not null,
                 "balance" json not null,
-                "decimals" integer not null,
-                "owner_uid" varchar not null,
 
                 "created" timestamp default now() not null,
                 "updated" timestamp default now() not null
@@ -33,7 +30,6 @@ export class AddCoin1627121250020 implements MigrationInterface {
                     constraint "coin_balance_coin_id_fkey" references "coin",
 
                 "coin_uid" varchar not null,
-                "decimals" integer not null,
 
                 "uid" varchar not null,
                 "held" varchar not null,

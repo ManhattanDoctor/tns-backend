@@ -38,23 +38,10 @@ export class CoinEntity extends TypeormValidableEntity implements Coin {
     @Matches(RegExpUtil.COIN_UID_REG_EXP)
     public uid: string;
 
-    @Column({ name: 'coin_id' })
-    @Matches(RegExpUtil.COIN_COIN_ID_REG_EXP)
-    public coinId: string;
-
     @Column({ type: 'json', transformer: TypeormJSONTransformer.instance })
     @IsDefined()
     @Type(() => CoinBalance)
     public balance: CoinBalance;
-
-    @Column()
-    @IsInt()
-    @Min(0)
-    public decimals: number;
-
-    @Column({ name: 'owner_uid' })
-    @Matches(RegExpUtil.COIN_OWNER_UID_REG_EXP)
-    public ownerUid: string;
 
     @CreateDateColumn()
     public created: Date;

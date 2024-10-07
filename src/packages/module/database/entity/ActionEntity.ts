@@ -89,11 +89,6 @@ export class ActionEntity extends TypeormValidableEntity implements Action {
     @IsOptional()
     public amount?: string;
 
-    @Column({ nullable: true })
-    @IsInt()
-    @IsOptional()
-    public decimals?: number;
-
     // --------------------------------------------------------------------------
     //
     //  Constructor

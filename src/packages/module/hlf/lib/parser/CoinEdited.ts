@@ -21,7 +21,7 @@ export class CoinEdited extends EventParser<ICoinEditedEventDto, void, void> {
     protected async execute(): Promise<void> {
         let coin = await this.coinGet(this.data.coinUid);
 
-        let details = { amount: this.data.amount, decimals: coin.decimals, coinUid: this.data.coinUid };
+        let details = { amount: this.data.amount, coinUid: this.data.coinUid };
         this.actionAdd(this.type, this.data.coinUid, details);
         this.actionAdd(this.type, this.data.objectUid, details);
 

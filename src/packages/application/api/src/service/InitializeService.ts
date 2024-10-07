@@ -48,9 +48,8 @@ export class InitializeService extends LoggerWrapper {
         await this.hlf.initialize();
 
         // this.transport.send(new LedgerBlockParseCommand({ number: 8 }));
-
-        /*
         let api = this.hlf;
+        /*
         api.setRoot();
         let signature: ISignature ={
             "value": "0xd4d10d55c3ad23e94fc928a01a5c40212de4f633754dc053333c7f1a24495b8100355d635785f7f13a334c85330ce37166d73cf4c9c25f43fec477919ef8e31f1b",
@@ -63,9 +62,10 @@ export class InitializeService extends LoggerWrapper {
         console.log(address);
         */
 
-        // await api.sendListen(new UserAddCommand({ signature: { publicKey: SECOND_USER_PUBLIC_KEY, algorithm: TransportCryptoManagerMetamaskBackend.ALGORITHM, value: personalSign({ data: '1', privateKey: Buffer.from(SECOND_USER_PRIVATE_KEY, 'hex') }), nonce: '1' }, inviterUid: PLATFORM_USER_UID }));
+        api.setRoot();
+        // api.sendListen(new UserAddCommand({ signature: { publicKey: SECOND_USER_PUBLIC_KEY, algorithm: TransportCryptoManagerMetamaskBackend.ALGORITHM, value: personalSign({ data: '1', privateKey: Buffer.from(SECOND_USER_PRIVATE_KEY, 'hex') }), nonce: '1' }, inviterUid: PLATFORM_USER_UID }));
         // await api.sendListen(new UserAddCommand({ signature: { publicKey: THIRD_USER_PUBLIC_KEY, algorithm: TransportCryptoManagerMetamaskBackend.ALGORITHM, value: personalSign({ data: '1', privateKey: Buffer.from(THIRD_USER_PRIVATE_KEY, 'hex') }), nonce: '1' }, inviterUid: SECOND_USER_UID }));
-        // await api.sendListen(new CoinTransferCommand({ to: SECOND_USER_UID, coinUid: COIN_UID, amount: '1000000' }));
+        // api.sendListen(new CoinTransferCommand({ to: SECOND_USER_UID, coinUid: COIN_UID, amount: '12' }));
         // await api.sendListen(new CoinTransferCommand({ to: THIRD_USER_UID, coinUid: COIN_UID, amount: '1000000' }));
 
         // api.setSecond();

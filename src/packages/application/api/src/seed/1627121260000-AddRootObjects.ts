@@ -43,11 +43,7 @@ export class AddRootObjects1627121260000 implements MigrationInterface {
     private async coinAdd(runner: QueryRunner): Promise<void> {
         let coin = new CoinEntity();
         coin.uid = AuctionVariable.coin.uid;
-        coin.coinId = AuctionVariable.coin.coinId;
-        coin.decimals = AuctionVariable.coin.decimals;
-        coin.ownerUid = AclVariables.platform.uid;
-        coin.balance = new CoinBalance();
-        coin.balance.held = coin.balance.burned = '0';
+        coin.balance = CoinBalance.create();
         coin.balance.inUse = coin.balance.emitted = AuctionVariable.coin.amount;
         coin = await runner.connection.getRepository(CoinEntity).save(coin);
 
@@ -55,7 +51,6 @@ export class AddRootObjects1627121260000 implements MigrationInterface {
         balance.uid = AclVariables.root.uid;
         balance.held = '0';
         balance.coinUid = coin.uid;
-        balance.decimals = coin.decimals;
         balance.inUse = balance.total = AuctionVariable.coin.amount;
         balance.coinId = coin.id;
         balance = await runner.connection.getRepository(CoinBalanceEntity).save(balance);

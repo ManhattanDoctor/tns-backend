@@ -74,38 +74,6 @@ export class CoinBalanceListController extends DefaultController<ICoinBalanceLis
 
     // --------------------------------------------------------------------------
     //
-    //  Private Methods
-    //
-    // --------------------------------------------------------------------------
-
-    private parseFilters<T>(filter: FilterableSort<CoinBalance> | FilterableConditions<CoinBalance>): T {
-        if (_.isEmpty(filter)) {
-            return null;
-        }
-        let item = {};
-        for (let name of ['id', 'coinId', 'decimals', 'objectUid', 'coinUid']) {
-            let value = filter[name];
-            if (_.isNil(value)) {
-                continue;
-            }
-            delete filter[name];
-            switch (name) {
-                case 'coinUid':
-                    item['ledgerUid'] = value;
-                    break;
-                case 'objectUid':
-                    filter['uid'] = value;
-                    break;
-                default:
-                    item[name] = value;
-            }
-
-        }
-        return item as T;
-    }
-
-    // --------------------------------------------------------------------------
-    //
     //  Public Methods
     //
     // --------------------------------------------------------------------------
@@ -115,15 +83,6 @@ export class CoinBalanceListController extends DefaultController<ICoinBalanceLis
     public async executeExtended(@Query({ transform: Paginable.transform }) params: CoinBalanceListDto): Promise<ICoinBalanceListDtoResponse> {
         let query = CoinBalanceEntity.createQueryBuilder('coinBalance');
         this.database.addCoinBalanceRelations(query);
-
-        let sort = this.parseFilters<FilterableSort<Coin>>(params.sort);
-        let conditions = this.parseFilters<FilterableConditions<Coin>>(params.conditions);
-        if (!_.isEmpty(conditions)) {
-            TypeormUtil.applyConditions(query, conditions, 'coin');
-        }
-        if (!_.isEmpty(sort)) {
-            TypeormUtil.applySort(query, sort, 'coin');
-        }
         return TypeormUtil.toPagination(query, params, this.transform);
     }
 

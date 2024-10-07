@@ -8,7 +8,7 @@ import { DatabaseService } from '@project/module/database/service';
 import { Swagger } from '@project/module/swagger';
 import { COIN_BALANCE_URL } from '@project/common/platform/api';
 import { CoinBalance } from '@project/common/platform';
-import { Variables as AclVariables } from '@project/common/hlf/acl';
+import { Variables as AuctionVariables } from '@project/common/hlf/auction';
 import { ICoinBalanceGetDto } from '@project/common/platform/api/coin';
 import * as _ from 'lodash';
 
@@ -56,7 +56,7 @@ export class CoinBalanceGetController extends DefaultController<ICoinBalanceGetD
     @Swagger({ name: 'Get coin balance', response: CoinBalance })
     @Get()
     public async executeExtended(@Param('coinId') coinId: string, @Query() params: CoinBalanceGetDto): Promise<CoinBalance> {
-        let coinUid = CoinUtil.createUid(coinId, AclVariables.platform.uid);
+        let coinUid = CoinUtil.createUid(coinId, AuctionVariables.coin.decimals, AuctionVariables.coin.ownerUid);
         let item = await this.database.coinBalanceGet(params.objectUid, coinUid);
         return !_.isNil(item) ? item.toObject() : null;
     }

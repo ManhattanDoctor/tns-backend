@@ -50,11 +50,6 @@ export class CoinBalanceEntity extends TypeormValidableEntity implements CoinBal
     @IsNumberString()
     public total: string;
 
-    @Column()
-    @IsInt()
-    @Min(0)
-    public decimals: number;
-
     @Column({ name: 'coin_uid' })
     @Matches(RegExpUtil.COIN_UID_REG_EXP)
     public coinUid: string;

@@ -12,8 +12,8 @@ export class CoinTransferred extends EventParser<ICoinTransferEventDto, void, vo
 
     protected async execute(): Promise<void> {
         let coin = await this.coinGet(this.data.coinUid);
-        
-        let details = { coinUid: this.data.coinUid, amount: this.data.amount, decimals: coin.decimals, userUid: this.userId };
+
+        let details = { coinUid: this.data.coinUid, amount: this.data.amount, userUid: this.userId };
         this.actionAdd(ActionType.COIN_TRANSFER_SENT, this.data.from, details);
         this.actionAdd(ActionType.COIN_TRANSFER_RECEIVE, this.data.to, details);
 
